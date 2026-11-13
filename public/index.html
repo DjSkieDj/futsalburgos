@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liga FS Infantil · Burgos</title>
+<meta name="description" content="Partidos, resultados y clasificación de la liga de fútbol sala infantil masculino, Segunda, Grupo 2 (Burgos).">
+<meta name="theme-color" content="#0b1424">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1424; --bg2:#0f1c33; --card:#13233f; --card2:#182b4c; --line:#24395e;
+  --txt:#eaf1ff; --mute:#8ea3c7; --accent:#ff8a1f; --accent2:#ffb15e; --win:#3ddc97; --loss:#ff6b6b;
+  --court:#1d4ed8; --radius:18px;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#eef3fb; --bg2:#e3ebf8; --card:#ffffff; --card2:#f4f7fd; --line:#d5dfef;
+    --txt:#0e1a30; --mute:#5b6f93; --accent:#e8710a; --accent2:#c85d00; --win:#0f9d63; --loss:#d63a3a;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#eef3fb; --bg2:#e3ebf8; --card:#ffffff; --card2:#f4f7fd; --line:#d5dfef;
+  --txt:#0e1a30; --mute:#5b6f93; --accent:#e8710a; --accent2:#c85d00; --win:#0f9d63; --loss:#d63a3a;
+}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--txt);font:500 16px/1.45 Barlow,system-ui,sans-serif;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+h1,h2,.display{font-family:'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.01em}
+button,select{font:inherit;color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+
+/* Cabecera con pista */
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#17306a 0%,#0e2150 55%,#0b1424 100%);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 0 76px}
+.hero::before{content:"";position:absolute;inset:0;opacity:.16;
+  background:
+   radial-gradient(circle at 78% 120%,transparent 0 92px,#fff 93px 96px,transparent 97px),
+   linear-gradient(90deg,transparent calc(78% - 1.5px),#fff calc(78% - 1.5px) calc(78% + 1.5px),transparent calc(78% + 1.5px)),
+   repeating-linear-gradient(0deg,transparent 0 38px,rgba(255,255,255,.08) 38px 39px);}
+.hero .wrap{position:relative}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
+.ball{width:22px;height:22px}
+.iconbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:.2s}
+.iconbtn:hover{background:rgba(255,255,255,.2)}
+.iconbtn svg{width:20px;height:20px}
+.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero h1{font-size:clamp(34px,7vw,56px);line-height:1;font-weight:800;margin-top:18px;text-transform:uppercase}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p.sub{color:#b9c8ea;margin-top:8px;font-size:15px}
+.status{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;color:#cfe0ff;background:rgba(255,255,255,.08);padding:6px 12px;border-radius:99px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--win);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:pulse 2s infinite}
+.dot.off{background:#ffb15e;animation:none}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+
+/* Controles */
+.controls{margin-top:-44px;position:relative;z-index:2}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.tabs{display:flex;gap:4px;flex:1;min-width:260px}
+.tab{flex:1;border:0;background:transparent;padding:12px 10px;border-radius:12px;font-weight:600;cursor:pointer;color:var(--mute);transition:.2s;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:19px;letter-spacing:.04em;text-transform:uppercase}
+.tab[aria-selected="true"]{background:var(--accent);color:#1a0e00}
+.tab:not([aria-selected="true"]):hover{color:var(--txt);background:var(--card2)}
+.teamsel{position:relative;flex:1;min-width:200px}
+.teamsel select{width:100%;appearance:none;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 38px 12px 14px;cursor:pointer;font-weight:600}
+.teamsel::after{content:"";position:absolute;right:14px;top:50%;width:8px;height:8px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+main.wrap{padding-top:26px;padding-bottom:56px}
+.notice{background:rgba(255,177,94,.12);border:1px solid rgba(255,177,94,.4);color:var(--accent2);padding:10px 14px;border-radius:12px;font-size:14px;margin-bottom:16px}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 12px;margin:6px 2px 12px}
+.section-title h2{font-size:26px;text-transform:uppercase;font-weight:700}
+.section-title span{color:var(--mute);font-size:14px}
+
+/* Jornadas */
+.rounds{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none;margin-bottom:6px}
+.rounds::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--mute);padding:8px 16px;border-radius:99px;cursor:pointer;font-weight:600;transition:.2s;white-space:nowrap}
+.chip:hover{color:var(--txt)}
+.chip[aria-pressed="true"]{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.chip small{opacity:.7;font-weight:500;margin-left:6px}
+.chip.next{border-color:var(--accent);color:var(--accent)}
+.chip.next[aria-pressed="true"]{background:var(--accent);color:#1a0e00}
+
+/* Partidos */
+.grid{display:grid;gap:12px}
+@media(min-width:720px){.grid.two{grid-template-columns:1fr 1fr}}
+.day{margin:16px 2px 4px;color:var(--mute);font-weight:600;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.match{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;animation:rise .4s both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.m-top{display:flex;justify-content:space-between;color:var(--mute);font-size:13px;font-weight:600;margin-bottom:10px;gap:8px}
+.m-top .time{color:var(--accent);font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-size:18px;letter-spacing:.04em}
+.m-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.t{display:flex;align-items:center;gap:10px;min-width:0}
+.t.away{flex-direction:row-reverse;text-align:right}
+.t b{font-weight:600;line-height:1.15;overflow-wrap:break-word;hyphens:auto}
+.t.win b{color:var(--win)}
+.crest{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:800;font-size:17px;color:#fff;letter-spacing:.02em;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.score{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:800;font-size:34px;line-height:1;display:flex;align-items:center;gap:8px;min-width:84px;justify-content:center}
+.score i{font-style:normal;color:var(--mute);font-size:24px}
+.score.vs{font-size:18px;color:var(--mute);letter-spacing:.1em}
+.m-venue{display:flex;align-items:center;gap:6px;margin-top:10px;color:var(--mute);font-size:13px}
+.m-venue svg{width:14px;height:14px;flex:none}
+.fil{outline:2px solid var(--accent);outline-offset:-2px}
+.hl{background:linear-gradient(90deg,rgba(255,138,31,.14),transparent)}
+
+@media(max-width:480px){
+  .m-row{grid-template-columns:1fr auto 1fr;gap:6px}
+  .t,.t.away{flex-direction:column;text-align:center;gap:6px}
+  .t b{font-size:14px}
+  .score{min-width:72px;font-size:30px}
+  td.team .t{flex-direction:row;text-align:left}
+}
+/* Clasificación */
+.table{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 8px;text-align:center;font-variant-numeric:tabular-nums}
+th{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:var(--card2);font-weight:600}
+td.team{text-align:left}
+th.team{text-align:left;padding-left:14px}
+tbody tr{border-top:1px solid var(--line);transition:.15s}
+tbody tr:hover{background:var(--card2)}
+.pos{width:34px}
+.pos span{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;font-weight:700;font-size:14px;background:var(--card2)}
+tr.p1 .pos span{background:var(--accent);color:#1a0e00}
+tr.p2 .pos span,tr.p3 .pos span{background:rgba(255,138,31,.25);color:var(--accent2)}
+td.team .t{gap:10px}
+td.team .crest{width:32px;height:32px;font-size:14px;border-radius:10px}
+td.pts{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:800;font-size:24px;color:var(--accent)}
+.dg-pos{color:var(--win)}.dg-neg{color:var(--loss)}
+@media(max-width:560px){.hide-s{display:none}th,td{padding:11px 4px}td.team .crest{display:none}}
+.legend{color:var(--mute);font-size:13px;margin:12px 4px 0}
+
+/* Esqueleto */
+.sk{background:linear-gradient(90deg,var(--card) 0,var(--card2) 50%,var(--card) 100%);background-size:200% 100%;animation:sh 1.3s infinite;border-radius:var(--radius);height:112px}
+@keyframes sh{to{background-position:-200% 0}}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+footer{color:var(--mute);font-size:12.5px;text-align:center;padding:0 16px 40px}
+footer a{color:var(--accent2)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="badge">
+        <svg class="ball" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="m12 7 4 3-1.5 5h-5L8 10z"/><path d="M12 7V2M16 10l5-1.5M14.5 15l3 4M9.5 15l-3 4M8 10 3 8.5"/></svg>
+        Fútbol sala · Burgos
+      </div>
+      <button class="iconbtn" id="refresh" title="Actualizar datos" aria-label="Actualizar datos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+      </button>
+    </div>
+    <h1>Liga infantil <em>Grupo 2</em></h1>
+    <p class="sub" id="subtitle">Infantil masculino · Segunda</p>
+    <div class="status"><span class="dot off" id="dot"></span><span id="status">Cargando datos…</span></div>
+  </div>
+</header>
+
+<div class="controls wrap">
+  <div class="panel">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="partidos" aria-selected="true">Partidos</button>
+      <button class="tab" role="tab" data-tab="clasificacion" aria-selected="false">Clasificación</button>
+    </div>
+    <label class="teamsel">
+      <span class="sr" hidden>Equipo</span>
+      <select id="team" aria-label="Filtrar por equipo"><option value="">Todos los equipos</option></select>
+    </label>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="notice" class="notice" hidden></div>
+  <section id="view-partidos">
+    <div class="rounds" id="rounds" hidden></div>
+    <div id="matches"><div class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>
+  </section>
+  <section id="view-clasificacion" hidden>
+    <div class="section-title"><h2>Clasificación</h2><span id="standSrc"></span></div>
+    <div class="table" id="standings"></div>
+    <p class="legend">PJ jugados · G ganados · E empatados · P perdidos · GF/GC goles a favor/en contra · DG diferencia · Pts puntos</p>
+  </section>
+</main>
+
+<footer>
+  Datos oficiales de <a href="https://deportes.aytoburgos.es/deporteson/resul.php?competi=003018&tipc=2&c=" target="_blank" rel="noopener">Deportes Ayuntamiento de Burgos</a>.
+  Web no oficial; se recargan al abrirla.
+</footer>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const state = { data: null, tab: 'partidos', team: '', round: null, loading: false };
+  const API = '/api/data';
+  const SNAP = 'snapshot.json';
+
+  /* ---------- utilidades ---------- */
+  const pretty = (s) => (s || '').split(' ').map((w) =>
+    w.length <= 2 || w.includes('.') ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  const hue = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+  const initials = (s) => {
+    const w = pretty(s).split(' ').filter((x) => x.length > 1 || x.includes('.'));
+    return (w.slice(0, 2).map((x) => x[0]).join('') || s.slice(0, 2)).toUpperCase();
+  };
+  const crest = (n) => `<span class="crest" style="background:linear-gradient(145deg,hsl(${hue(n)} 62% 46%),hsl(${(hue(n) + 28) % 360} 60% 33%))">${initials(n)}</span>`;
+  const tz = 'Europe/Madrid';
+  const todayISO = () => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date());
+  const fmtDay = (iso) => iso ? new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(iso + 'T00:00:00Z')) : 'Fecha por confirmar';
+  const fmtShort = (iso) => iso ? new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(iso + 'T00:00:00Z')).replace('.', '') : '';
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const store = {
+    get() { try { return JSON.parse(localStorage.getItem('liga-fs-cache')); } catch { return null; } },
+    set(v) { try { localStorage.setItem('liga-fs-cache', JSON.stringify(v)); } catch {} },
+  };
+
+  /* ---------- carga de datos (se ejecuta en cada apertura) ---------- */
+  async function load(force) {
+    if (state.loading) return;
+    state.loading = true;
+    $('#refresh').classList.add('spin');
+    setStatus('Actualizando desde la web oficial…', false);
+    try {
+      const r = await fetch(API + (force ? '?force=1' : '') + (force ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      apply(await r.json());
+    } catch (e) {
+      // Sin servidor/origen: último dato guardado en el navegador o el snapshot incluido
+      let d = store.get();
+      if (!d) { try { d = await (await fetch(SNAP)).json(); } catch {} }
+      if (d) { d.warnings = ['No se pudo actualizar; se muestran datos guardados.']; d.source = 'offline'; apply(d, true); }
+      else $('#matches').innerHTML = '<div class="empty">No se pudieron cargar los datos. Inténtalo de nuevo en unos minutos.</div>';
+    } finally {
+      state.loading = false;
+      $('#refresh').classList.remove('spin');
+    }
+  }
+
+  function apply(d, offline) {
+    state.data = d;
+    if (!offline) store.set(d);
+    const live = d.source === 'live';
+    const when = d.updatedAt ? new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short', timeZone: tz }).format(new Date(d.updatedAt)) : '';
+    setStatus(live ? `Datos actualizados · ${when}` : `Datos guardados · ${when}`, live);
+    const n = $('#notice');
+    n.hidden = !(d.warnings && d.warnings.length);
+    n.textContent = (d.warnings || []).join(' ');
+    const m = (d.competition.name || '').match(/-\s*(.*?)\s*\(/);
+    if (m) $('#subtitle').textContent = m[1].split(',').map((x) => pretty(x.trim())).join(' · ');
+    // selector de equipos
+    const sel = $('#team'); const cur = state.team;
+    sel.innerHTML = '<option value="">Todos los equipos</option>' + d.teams.map((t) => `<option value="${esc(t.name)}">${esc(pretty(t.name))}</option>`).join('');
+    sel.value = cur;
+    if (state.round === null || state.round >= d.rounds.length) state.round = defaultRound(d);
+    render();
+  }
+
+  function setStatus(t, live) { $('#status').textContent = t; $('#dot').classList.toggle('off', !live); }
+
+  function defaultRound(d) {
+    const t = todayISO();
+    const i = d.rounds.findIndex((r) => r.matches.some((m) => !m.played && (!m.date || m.date >= t)));
+    return i >= 0 ? i : Math.max(0, d.rounds.length - 1);
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    if (!state.data) return;
+    document.querySelectorAll('.tab').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === state.tab));
+    $('#view-partidos').hidden = state.tab !== 'partidos';
+    $('#view-clasificacion').hidden = state.tab !== 'clasificacion';
+    state.tab === 'partidos' ? renderMatches() : renderStandings();
+  }
+
+  function matchCard(m, i) {
+    const winH = m.played && m.hg > m.ag, winA = m.played && m.ag > m.hg;
+    const mid = m.played
+      ? `<div class="score">${m.hg}<i>-</i>${m.ag}</div>`
+      : m.note ? `<div class="score vs">${esc(m.note)}</div>` : `<div class="score vs">VS</div>`;
+    const t = state.team;
+    const mine = t && (m.home === t || m.away === t);
+    return `<article class="match ${mine ? 'hl' : ''}" style="animation-delay:${i * 40}ms">
+      <div class="m-top"><span>${esc(fmtShort(m.date))}</span>${m.time ? `<span class="time">${esc(m.time)} h</span>` : '<span>Hora por confirmar</span>'}</div>
+      <div class="m-row">
+        <div class="t home ${winH ? 'win' : ''}">${crest(m.home)}<b>${esc(pretty(m.home))}</b></div>
+        ${mid}
+        <div class="t away ${winA ? 'win' : ''}">${crest(m.away)}<b>${esc(pretty(m.away))}</b></div>
+      </div>
+      ${m.venue ? `<div class="m-venue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>${esc(pretty(m.venue))}</div>` : ''}
+    </article>`;
+  }
+
+  function renderMatches() {
+    const d = state.data, box = $('#matches'), rb = $('#rounds');
+    if (state.team) {
+      rb.hidden = true;
+      let html = '', i = 0;
+      d.rounds.forEach((r) => {
+        r.matches.filter((m) => m.home === state.team || m.away === state.team).forEach((m) => {
+          html += `<div class="day">${esc(r.name)} · ${esc(fmtDay(m.date))}</div>` + matchCard(m, i++);
+        });
+      });
+      box.innerHTML = html || '<div class="empty">Este equipo no tiene partidos.</div>';
+      return;
+    }
+    const t = todayISO(), next = defaultRound(d);
+    rb.hidden = false;
+    rb.innerHTML = d.rounds.map((r, i) => {
+      const dates = r.matches.map((m) => m.date).filter(Boolean).sort();
+      return `<button class="chip ${i === next ? 'next' : ''}" data-r="${i}" aria-pressed="${i === state.round}">${esc(r.name.replace('Jornada', 'J'))}<small>${esc(fmtShort(dates[0]))}</small></button>`;
+    }).join('');
+    const r = d.rounds[state.round];
+    const byDay = {};
+    r.matches.forEach((m) => (byDay[m.date || ''] ||= []).push(m));
+    let html = `<div class="section-title"><h2>${esc(r.name)}</h2><span>${state.round === next ? 'Próxima jornada' : ''}</span></div>`, i = 0;
+    Object.keys(byDay).sort().forEach((day) => {
+      html += `<div class="day">${esc(fmtDay(day))}</div><div class="grid two">${byDay[day].map((m) => matchCard(m, i++)).join('')}</div>`;
+    });
+    box.innerHTML = html;
+    const active = rb.querySelector('[aria-pressed="true"]');
+    if (active) rb.scrollTo({ left: active.offsetLeft - 40, behavior: 'smooth' });
+  }
+
+  function renderStandings() {
+    const d = state.data;
+    $('#standSrc').textContent = d.standingsSource === 'oficial' ? 'Clasificación oficial' : 'Calculada con los resultados (3-1-0)';
+    const rows = d.standings.map((s, i) => `<tr class="p${i + 1} ${state.team === s.team ? 'hl fil' : ''}">
+      <td class="pos"><span>${i + 1}</span></td>
+      <td class="team"><div class="t">${crest(s.team)}<b>${esc(pretty(s.team))}</b></div></td>
+      <td>${s.pj}</td><td class="hide-s">${s.g}</td><td class="hide-s">${s.e}</td><td class="hide-s">${s.p}</td>
+      <td class="hide-s">${s.gf}</td><td class="hide-s">${s.gc}</td>
+      <td class="${s.dg > 0 ? 'dg-pos' : s.dg < 0 ? 'dg-neg' : ''}">${s.dg > 0 ? '+' : ''}${s.dg}</td>
+      <td class="pts">${s.pts}</td></tr>`).join('');
+    $('#standings').innerHTML = `<table><thead><tr><th class="pos">#</th><th class="team">Equipo</th><th>PJ</th><th class="hide-s">G</th><th class="hide-s">E</th><th class="hide-s">P</th><th class="hide-s">GF</th><th class="hide-s">GC</th><th>DG</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  /* ---------- eventos ---------- */
+  document.addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab'); if (tab) { state.tab = tab.dataset.tab; render(); }
+    const chip = e.target.closest('.chip'); if (chip) { state.round = +chip.dataset.r; render(); }
+  });
+  $('#team').addEventListener('change', (e) => { state.team = e.target.value; render(); });
+  $('#refresh').addEventListener('click', () => load(true));
+  let last = Date.now();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - last > 5 * 60 * 1000) { last = Date.now(); load(); }
+  });
+
+  // Pintado instantáneo con lo último guardado, y recarga real desde el origen
+  const cached = store.get(); if (cached) { cached.source = 'offline'; apply(cached, true); }
+  load();
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
