@@ -1,8 +1,0 @@
-{
-  "name": "liga-fs-burgos",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Web de la liga FS Infantil Masc. Grupo 2 (Burgos) con datos de deportes.aytoburgos.es",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" }
-}
