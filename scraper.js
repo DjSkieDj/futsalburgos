@@ -117,7 +117,7 @@ async function extraerDatos() {
   // Detectar enlace real al botón de Clasificación
   let urlClasificacion = URL_CLASIFICACION_BASE;
   $res('a, button, input').each((_, el) => {
-    const texto = limpiarTexto($res(el).text() \vert{}\vert{}$res(el).attr('value'));
+    const texto = limpiarTexto($res(el).text() || $res(el).attr('value'));
     if (/clasificaci[oó]n/i.test(texto)) {
       const href = $res(el).attr('href');
       const onclick = $res(el).attr('onclick') || '';
@@ -312,4 +312,13 @@ async function extraerDatos() {
 
   // Si existe index.html en la raíz (GitHub Pages), guardar también datos.json en la raíz
   if (fs.existsSync(path.join(__dirname, 'index.html'))) {
-    fs.writeFileSync(path.join(__dirname, 'datos.json'), JSON.stringify
+    fs.writeFileSync(path.join(__dirname, 'datos.json'), JSON.stringify(salida, null, 2), 'utf-8');
+  }
+
+  console.log('¡Actualización completada con éxito!');
+}
+
+extraerDatos().catch(err => {
+  console.error('Error fatal en scraper.js:', err);
+  process.exit(1);
+});
