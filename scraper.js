@@ -2,8 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio');
 
+// Evita fallos por certificados SSL intermedios incompletos en webs municipales
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const URL_RESULTADOS = 'https://deportes.aytoburgos.es/deporteson/resul.php?competi=003018&tipc=&c=0';
-const URL_CLASIFICACION_FALLBACK = 'https://deportes.aytoburgos.es/deporteson/clasi.php?competi=003018&tipc=&c=0';
+const URL_CLASIFICACION_BASE = 'https://deportes.aytoburgos.es/deporteson/clasi.php?competi=003018&tipc=&c=0';
 
 async function fetchHtml(url) {
   const response = await fetch(url, {
@@ -31,7 +34,6 @@ function limpiarTexto(str) {
 }
 
 function buscarTituloJornada($, tabla, indiceFallback) {
-  // 1. Buscar en elementos anteriores directos o en contenedores padres (ej. div.table-responsive)
   let actual = $(tabla);
   for (let nivel = 0; nivel < 4; nivel++) {
     let prev = actual.prev();
@@ -40,7 +42,6 @@ function buscarTituloJornada($, tabla, indiceFallback) {
       if (txt && /jornada\s*\d+/i.test(txt) && txt.length < 60) {
         return txt;
       }
-      // También revisar encabezados dentro del hermano anterior
       const subHeader = prev.find('h1, h2, h3, h4, h5, p, span, strong, b').filter((_, el) => {
         const t = limpiarTexto($(el).text());
         return /^jornada\s*\d+/i.test(t);
@@ -109,14 +110,14 @@ function calcularClasificacionDesdeJornadas(jornadas, equipos) {
 }
 
 async function extraerDatos() {
-  console.log('1. Descargando página de resultados desde:', URL_RESULTADOS);
+  console.log('1. Descargando resultados desde:', URL_RESULTADOS);
   const resHtml = await fetchHtml(URL_RESULTADOS);
   const $res = cheerio.load(resHtml);
 
-  // Detectar dinámicamente la URL exacta del botón "Clasificación" dentro de la web oficial
-  let urlClasificacion = URL_CLASIFICACION_FALLBACK;
+  // Detectar enlace real al botón de Clasificación
+  let urlClasificacion = URL_CLASIFICACION_BASE;
   $res('a, button, input').each((_, el) => {
-    const texto = limpiarTexto($res(el).text() || $res(el).attr('value'));
+    const texto = limpiarTexto($res(el).text() \vert{}\vert{}$res(el).attr('value'));
     if (/clasificaci[oó]n/i.test(texto)) {
       const href = $res(el).attr('href');
       const onclick = $res(el).attr('onclick') || '';
@@ -134,16 +135,15 @@ async function extraerDatos() {
   const jornadas = [];
   const equiposSet = new Set();
 
-  // Extraer todas las tablas de jornadas (tanto pasadas como futuras)
   $res('table').each((i, tabla) => {
     const tituloJornada = buscarTituloJornada($res, tabla, i + 1);
     const partidos = [];
 
     $res(tabla).find('tr').each((_, fila) => {
       const celdas = $res(fila).find('td');
-      if (celdas.length === 0) return; // Ignorar filas que solo tienen <th>
+      if (celdas.length === 0) return;
 
-      // Caso A: Fila estándar con 6 o 7 columnas (Local | GL | GV | Visitante | Fecha | Lugar | [Acta])
+      // CASO 1: Partido jugado (7 columnas: Local | GL | GV | Visitante | Fecha | Lugar | Acta)
       if (celdas.length >= 6) {
         const local = limpiarTexto($res(celdas[0]).text());
         const gLocalRaw = limpiarTexto($res(celdas[1]).text());
@@ -171,34 +171,26 @@ async function extraerDatos() {
           });
         }
       }
-      // Caso B: Jornadas futuras donde las 2 celdas de goles están unidas con colspan="2" (5 columnas en total)
-      else if (celdas.length === 5) {
+      // CASO 2: Jornada futura sin columnas de goles (5 columnas: Local | Visitante | Fecha | Lugar | Acta)
+      else if (celdas.length === 5 || celdas.length === 4) {
         const local = limpiarTexto($res(celdas[0]).text());
-        const marcadorRaw = limpiarTexto($res(celdas[1]).text());
-        const visitante = limpiarTexto($res(celdas[2]).text());
-        const fecha = limpiarTexto($res(celdas[3]).text());
-        const lugar = limpiarTexto($res(celdas[4]).text());
+        const visitante = limpiarTexto($res(celdas[1]).text());
+        const fecha = limpiarTexto($res(celdas[2]).text());
+        const lugar = limpiarTexto($res(celdas[3]).text());
+        const actaHref = celdas.length === 5 ? ($res(celdas[4]).find('a').attr('href') || null) : null;
 
         if (local && visitante && !/^local$/i.test(local)) {
           equiposSet.add(local);
           equiposSet.add(visitante);
 
-          let golesLocal = null;
-          let golesVisitante = null;
-          const m = marcadorRaw.match(/^(\d+)\s*[-:]\s*(\d+)$/);
-          if (m) {
-            golesLocal = Number(m[1]);
-            golesVisitante = Number(m[2]);
-          }
-
           partidos.push({
             local,
-            golesLocal,
-            golesVisitante,
+            golesLocal: null,
+            golesVisitante: null,
             visitante,
             fecha,
             lugar,
-            acta: null
+            acta: actaHref ? new URL(actaHref, URL_RESULTADOS).href : null
           });
         }
       }
@@ -212,9 +204,9 @@ async function extraerDatos() {
     }
   });
 
-  console.log(`   -> Encontradas ${jornadas.length} jornadas y ${equiposSet.size} equipos.`);
+  console.log(`   -> ${jornadas.length} jornadas extraídas. Equipos detectados:`, Array.from(equiposSet));
 
-  // 2. Extraer Clasificación Oficial
+  // 2. Extraer Clasificación Oficial comprobando qué tabla contiene realmente a los equipos de la liga
   let clasificacion = [];
   const posiblesUrlsClasif = Array.from(new Set([
     urlClasificacion,
@@ -225,87 +217,59 @@ async function extraerDatos() {
 
   for (const urlC of posiblesUrlsClasif) {
     try {
-      console.log('2. Intentando descargar clasificación desde:', urlC);
+      console.log('2. Probando clasificación en:', urlC);
       const clasifHtml = await fetchHtml(urlC);
       const $clasif = cheerio.load(clasifHtml);
 
       $clasif('table').each((_, tabla) => {
         if (clasificacion.length > 0) return;
 
-        // Detectar índices de columnas leyendo la cabecera (<th> o primera fila)
-        const headerCells = $clasif(tabla).find('tr').first().find('th, td');
-        const headers = [];
-        headerCells.each((idx, el) => {
-          headers.push(limpiarTexto($clasif(el).text()).toLowerCase());
-        });
-
-        const idxEquipo = headers.findIndex(h => h.includes('equipo') || h.includes('club'));
-        const idxPuntos = headers.findIndex(h => h.includes('pt') || h.includes('pun'));
-        const idxPJ = headers.findIndex(h => h === 'pj' || h.includes('jug'));
-        const idxPG = headers.findIndex(h => h === 'pg' || h.includes('gan'));
-        const idxPE = headers.findIndex(h => h === 'pe' || h.includes('emp'));
-        const idxPP = headers.findIndex(h => h === 'pp' || h.includes('per'));
-        const idxGF = headers.findIndex(h => h === 'gf' || h.includes('favor'));
-        const idxGC = headers.findIndex(h => h === 'gc' || h.includes('contra'));
-        const idxPos = headers.findIndex(h => h === 'pos' || h === '#' || h.includes('puesto') || h === 'ord');
+        const textoTabla = limpiarTexto($clasif(tabla).text()).toUpperCase();
+        // Verificar que la tabla contiene al menos un equipo real de esta competición
+        const contieneEquipoReal = Array.from(equiposSet).some(eq => textoTabla.includes(eq.toUpperCase()));
+        if (!contieneEquipoReal) return;
 
         const filasTemp = [];
-        $clasif(tabla).find('tr').each((rowIdx, fila) => {
-          if (rowIdx === 0 && (idxEquipo !== -1 || idxPuntos !== -1)) return;
+        $clasif(tabla).find('tr').each((__, fila) => {
           const cols = $clasif(fila).find('td');
           if (cols.length < 5) return;
 
           const valores = [];
-          cols.each((__, c) => valores.push(limpiarTexto($clasif(c).text())));
+          cols.each((___, c) => valores.push(limpiarTexto($clasif(c).text())));
 
-          let equipo = '';
-          let puntos = NaN;
-          let posicion = filasTemp.length + 1;
-          let jugados = 0, ganados = 0, empatados = 0, perdidos = 0, golesFavor = 0, golesContra = 0;
+          const colEquipoIdx = valores.findIndex(v =>
+            Array.from(equiposSet).some(eq => eq.toUpperCase() === v.toUpperCase()) ||
+            (v.length > 3 && isNaN(Number(v)) && !/^equipo$/i.test(v))
+          );
 
-          if (idxEquipo !== -1 && idxPuntos !== -1) {
-            equipo = valores[idxEquipo] || '';
-            puntos = Number(valores[idxPuntos]);
-            if (idxPos !== -1 && !isNaN(Number(valores[idxPos]))) posicion = Number(valores[idxPos]);
-            if (idxPJ !== -1) jugados = Number(valores[idxPJ]) || 0;
-            if (idxPG !== -1) ganados = Number(valores[idxPG]) || 0;
-            if (idxPE !== -1) empatados = Number(valores[idxPE]) || 0;
-            if (idxPP !== -1) perdidos = Number(valores[idxPP]) || 0;
-            if (idxGF !== -1) golesFavor = Number(valores[idxGF]) || 0;
-            if (idxGC !== -1) golesContra = Number(valores[idxGC]) || 0;
-          } else {
-            // Heurística si no hay cabecera explícita: buscar la columna con texto de nombre de equipo
-            const colTextoIdx = valores.findIndex(v => v.length > 2 && isNaN(Number(v)));
-            if (colTextoIdx !== -1) {
-              equipo = valores[colTextoIdx];
-              if (colTextoIdx > 0 && !isNaN(Number(valores[0]))) {
-                posicion = Number(valores[0]);
+          if (colEquipoIdx !== -1) {
+            const equipo = valores[colEquipoIdx];
+            const posicion = (colEquipoIdx > 0 && !isNaN(Number(valores[0])))
+              ? Number(valores[0])
+              : filasTemp.length + 1;
+
+            const nums = valores.slice(colEquipoIdx + 1).map(v => Number(v)).filter(n => !isNaN(n));
+            if (nums.length >= 7) {
+              let puntos, jugados, ganados, empatados, perdidos, golesFavor, golesContra;
+              // En Ayuntamiento de Burgos suele ser: Puntos, PJ, PG, PE, PP, GF, GC (o PJ...Puntos)
+              if (nums[0] >= nums[1] && nums[1] === nums[2] + nums[3] + nums[4]) {
+                [puntos, jugados, ganados, empatados, perdidos, golesFavor, golesContra] = nums;
+              } else {
+                [jugados, ganados, empatados, perdidos, golesFavor, golesContra, puntos] = nums;
               }
-              const nums = valores.slice(colTextoIdx + 1).map(v => Number(v)).filter(n => !isNaN(n));
-              if (nums.length >= 7) {
-                // Formato típico español: PJ, PG, PE, PP, GF, GC, Puntos (o Puntos primero)
-                if (nums[0] <= nums[6] && nums[6] >= nums[1] * 2) {
-                  [jugados, ganados, empatados, perdidos, golesFavor, golesContra, puntos] = nums;
-                } else {
-                  [puntos, jugados, ganados, empatados, perdidos, golesFavor, golesContra] = nums;
-                }
-              }
+
+              filasTemp.push({
+                posicion,
+                equipo,
+                puntos: puntos ?? 0,
+                jugados: jugados ?? 0,
+                ganados: ganados ?? 0,
+                empatados: empatados ?? 0,
+                perdidos: perdidos ?? 0,
+                golesFavor: golesFavor ?? 0,
+                golesContra: golesContra ?? 0
+              });
             }
-          }
-
-          if (equipo && !isNaN(puntos) && !/^equipo$/i.test(equipo)) {
-            equiposSet.add(equipo);
-            filasTemp.push({
-              posicion,
-              equipo,
-              puntos,
-              jugados,
-              ganados,
-              empatados,
-              perdidos,
-              golesFavor,
-              golesContra
-            });
           }
         });
 
@@ -315,17 +279,17 @@ async function extraerDatos() {
       });
 
       if (clasificacion.length > 0) {
-        console.log(`   -> Clasificación oficial extraída (${clasificacion.length} equipos) desde ${urlC}`);
+        console.log(`   -> Clasificación oficial obtenida (${clasificacion.length} equipos) desde ${urlC}`);
         break;
       }
     } catch (e) {
-      console.warn(`   -> No disponible en ${urlC}: ${e.message}`);
+      console.warn(`   -> Fallo en ${urlC}: ${e.message}`);
     }
   }
 
-  // Respaldo: Si la web oficial aún no publicó la tabla de clasificación, calcularla desde los resultados
+  // Respaldo: Si la web oficial no devuelve tabla de clasificación, calcularla desde los partidos
   if (clasificacion.length === 0 && equiposSet.size > 0) {
-    console.log('   -> Calculando clasificación automáticamente a partir de los resultados jugados...');
+    console.log('   -> Calculando clasificación automáticamente desde los resultados...');
     clasificacion = calcularClasificacionDesdeJornadas(jornadas, Array.from(equiposSet));
   }
 
@@ -341,13 +305,11 @@ async function extraerDatos() {
     jornadas
   };
 
-  const outputPath = path.join(__dirname, 'public', 'datos.json');
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, JSON.stringify(salida, null, 2), 'utf-8');
-  console.log('¡Archivo public/datos.json generado con éxito!');
-}
+  // Guardar en public/datos.json (para Vercel/Netlify)
+  const outputPublic = path.join(__dirname, 'public', 'datos.json');
+  fs.mkdirSync(path.dirname(outputPublic), { recursive: true });
+  fs.writeFileSync(outputPublic, JSON.stringify(salida, null, 2), 'utf-8');
 
-extraerDatos().catch(err => {
-  console.error('Error fatal en scraper.js:', err);
-  process.exit(1);
-});
+  // Si existe index.html en la raíz (GitHub Pages), guardar también datos.json en la raíz
+  if (fs.existsSync(path.join(__dirname, 'index.html'))) {
+    fs.writeFileSync(path.join(__dirname, 'datos.json'), JSON.stringify
