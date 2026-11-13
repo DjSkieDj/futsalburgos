@@ -1,1 +1,48 @@
+name: Actualizar Resultados y Clasificación
 
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'public/datos.json'
+  schedule:
+    # Lunes: cada hora en punto
+    - cron: '0 * * * 1'
+    # Resto de días entre semana (martes a viernes): cada 2 horas
+    - cron: '0 */2 * * 2-5'
+    # Fines de semana (sábado y domingo): cada 2 horas
+    - cron: '0 */2 * * 6,0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar-datos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Extraer todas las jornadas y clasificación de Ayto. Burgos
+        run: npm run scrape
+
+      - name: Guardar cambios en public/datos.json
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "Actualizador Liga Burgos"
+          git add public/datos.json
+          if ! git diff --staged --quiet; then
+            git commit -m "Actualización automática: jornadas y clasificación"
+            git push
+          else
+            echo "Los datos ya están al día."
+          fi
