@@ -1,0 +1,129 @@
+{
+  "ultimaActualizacion": null,
+  "competicion": "FS. INFANTIL MASC GRUPO 2 - FÚTBOL-SALA, INFANTIL MASCULINO, SEGUNDA, GRUPO 2 (003018)",
+  "fuenteOficial": "https://deportes.aytoburgos.es/deporteson/resul.php?competi=003018&tipc=&c=0",
+  "equipos": [
+    "C.L. MENDOZA B",
+    "CONCEPCIONISTAS",
+    "DIEGO PORCELOS B",
+    "MARISTAS B",
+    "PINTOR LUIS SÁEZ A",
+    "SALDAÑA B"
+  ],
+  "clasificacion": [
+    {
+      "posicion": 1,
+      "equipo": "MARISTAS B",
+      "puntos": 3,
+      "jugados": 1,
+      "ganados": 1,
+      "empatados": 0,
+      "perdidos": 0,
+      "golesFavor": 8,
+      "golesContra": 0
+    },
+    {
+      "posicion": 2,
+      "equipo": "PINTOR LUIS SÁEZ A",
+      "puntos": 3,
+      "jugados": 1,
+      "ganados": 1,
+      "empatados": 0,
+      "perdidos": 0,
+      "golesFavor": 7,
+      "golesContra": 0
+    },
+    {
+      "posicion": 3,
+      "equipo": "CONCEPCIONISTAS",
+      "puntos": 3,
+      "jugados": 1,
+      "ganados": 1,
+      "empatados": 0,
+      "perdidos": 0,
+      "golesFavor": 6,
+      "golesContra": 4
+    },
+    {
+      "posicion": 4,
+      "equipo": "SALDAÑA B",
+      "puntos": 0,
+      "jugados": 1,
+      "ganados": 0,
+      "empatados": 0,
+      "perdidos": 1,
+      "golesFavor": 4,
+      "golesContra": 6
+    },
+    {
+      "posicion": 5,
+      "equipo": "C.L. MENDOZA B",
+      "puntos": 0,
+      "jugados": 1,
+      "ganados": 0,
+      "empatados": 0,
+      "perdidos": 1,
+      "golesFavor": 0,
+      "golesContra": 7
+    },
+    {
+      "posicion": 6,
+      "equipo": "DIEGO PORCELOS B",
+      "puntos": 0,
+      "jugados": 1,
+      "ganados": 0,
+      "empatados": 0,
+      "perdidos": 1,
+      "golesFavor": 0,
+      "golesContra": 8
+    }
+  ],
+  "jornadas": [
+    {
+      "jornada": "Jornada 1",
+      "partidos": [
+        {
+          "local": "SALDAÑA B",
+          "golesLocal": 4,
+          "golesVisitante": 6,
+          "visitante": "CONCEPCIONISTAS",
+          "fecha": "07/11/26 09:00",
+          "lugar": "CONCEPCIONISTAS",
+          "acta": null
+        },
+        {
+          "local": "MARISTAS B",
+          "golesLocal": 8,
+          "golesVisitante": 0,
+          "visitante": "DIEGO PORCELOS B",
+          "fecha": "07/11/26 10:00",
+          "lugar": "LAVADEROS",
+          "acta": null
+        },
+        {
+          "local": "C.L. MENDOZA B",
+          "golesLocal": 0,
+          "golesVisitante": 7,
+          "visitante": "PINTOR LUIS SÁEZ A",
+          "fecha": "07/11/26 11:00",
+          "lugar": "SAN AMARO",
+          "acta": null
+        }
+      ]
+    },
+    {
+      "jornada": "Jornada 2",
+      "partidos": [
+        {
+          "local": "CONCEPCIONISTAS",
+          "golesLocal": null,
+          "golesVisitante": null,
+          "visitante": "MARISTAS B",
+          "fecha": "14/11/26",
+          "lugar": "CONCEPCIONISTAS",
+          "acta": null
+        }
+      ]
+    }
+  ]
+}

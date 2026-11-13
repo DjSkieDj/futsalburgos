@@ -1,0 +1,11 @@
+{
+  "name": "liga-futsal-burgos-web",
+  "version": "2.0.0",
+  "description": "Web moderna y autoactualizable de resultados y clasificación - Deportes Ayuntamiento de Burgos",
+  "scripts": {
+    "scrape": "node scraper.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
