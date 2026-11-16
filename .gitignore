@@ -1,3 +1,3 @@
 node_modules/
-docs/status.json
-.DS_Store
+data/
+.env
